@@ -1,0 +1,18 @@
+Items: {
+	CrystallisedCloud: {
+		DisplayName: Crystallised Cloud
+		Tooltip: ""
+	}
+
+	CrystallizedCloud: {
+		DisplayName: Crystallized Cloud
+		Tooltip: ""
+	}
+
+	Teleporter: {
+		DisplayName: Teleporter
+		Tooltip: ""
+	}
+}
+
+Projectiles.FakeHookProjectile.DisplayName: ""
