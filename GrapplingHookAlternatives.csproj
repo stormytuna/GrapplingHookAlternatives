@@ -13,6 +13,7 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Assets\Sounds\"/>
+        <Folder Include="Content\Items\"/>
         <Folder Include="Helpers\"/>
     </ItemGroup>
 </Project>
