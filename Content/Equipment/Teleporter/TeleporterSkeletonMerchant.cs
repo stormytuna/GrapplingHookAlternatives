@@ -1,7 +1,3 @@
-using Terraria;
-using Terraria.ID;
-using Terraria.ModLoader;
-
 namespace GrapplingHookAlternatives.Content.Equipment.Teleporter;
 
 public class TeleporterSkeletonMerchant : GlobalNPC

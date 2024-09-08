@@ -1,14 +1,10 @@
-using GrapplingHookAlternatives.Common.Abstracts;
-using Microsoft.Xna.Framework;
-using Terraria;
-using Terraria.ID;
-using Terraria.ModLoader;
+using GrapplingHookAlternatives.Interfaces;
 
-namespace GrapplingHookAlternatives.Content.Items;
+namespace GrapplingHookAlternatives.Content.Equipment.CrystallizedCloud;
 
-public class CrystallizedCloud : MovementEquipment
+public class CrystallizedCloud : ModItem, IMovementEquipment
 {
-	public override int CooldownTime => 3 * 60;
+	public int CooldownTime => 3 * 60;
 
 	public override void SetDefaults() {
 		Item.width = 22;
@@ -19,7 +15,7 @@ public class CrystallizedCloud : MovementEquipment
 		Item.shoot = ModContent.ProjectileType<FakeHookProjectile>();
 	}
 
-	public override void OnGrapple(Player player) {
+	public void OnGrapple(Player player) {
 		Vector2 launchDirection = player.DirectionFrom(Main.MouseWorld);
 		float launchSpeed = 9f;
 		player.velocity += launchDirection * launchSpeed;

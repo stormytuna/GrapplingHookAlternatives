@@ -1,22 +1,17 @@
 using System.Collections.Generic;
-using GrapplingHookAlternatives.Common;
-using GrapplingHookAlternatives.Common.Abstracts;
-using Microsoft.Xna.Framework;
-using Terraria;
+using GrapplingHookAlternatives.Interfaces;
 using Terraria.DataStructures;
-using Terraria.ID;
-using Terraria.ModLoader;
 
 namespace GrapplingHookAlternatives.Content.Equipment.Teleporter;
 
-public class Teleporter : MovementEquipment
+public class Teleporter : ModItem, IMovementEquipment
 {
 	private const int TeleportBoxWidth = 16;
 	private const int TeleportBoxHeight = 12;
 	private const int TeleportBoxHorizontalOffset = 25;
 	private const int TeleportBoxVerticalOffset = 20;
 
-	public override int CooldownTime => 0 * 60;
+	public int CooldownTime => 0 * 60;
 
 	public override void SetDefaults() {
 		Item.width = 14;
@@ -27,7 +22,7 @@ public class Teleporter : MovementEquipment
 		Item.shoot = ModContent.ProjectileType<FakeHookProjectile>();
 	}
 
-	public override void OnGrapple(Player player) {
+	public void OnGrapple(Player player) {
 		// TODO: Visualise and finalise this!
 		int teleportBoxWidth = 16;
 		int teleportBoxHeight = 12;

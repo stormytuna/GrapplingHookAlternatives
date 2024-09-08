@@ -1,10 +1,7 @@
-using System;
-using GrapplingHookAlternatives.Common.Abstracts;
 using GrapplingHookAlternatives.Common.Players;
+using GrapplingHookAlternatives.Interfaces;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using Terraria;
-using Terraria.ModLoader;
 
 namespace GrapplingHookAlternatives.Common;
 
@@ -28,7 +25,7 @@ public class ILEdits : ILoadable
 			cursor.Emit(OpCodes.Ldloc_0);
 			cursor.Emit(OpCodes.Ldarg_0);
 			cursor.EmitDelegate<Action<Item, Player>>((item, player) => {
-				if (item.ModItem is not MovementEquipment movementEquipment || player.GetModPlayer<MovementEquipmentPlayer>().OnCooldown) {
+				if (item.ModItem is not IMovementEquipment movementEquipment || player.GetModPlayer<MovementEquipmentPlayer>().OnCooldown) {
 					return;
 				}
 

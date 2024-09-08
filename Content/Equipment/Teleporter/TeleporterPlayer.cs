@@ -1,10 +1,7 @@
 using GrapplingHookAlternatives.Common.Loaders;
 using GrapplingHookAlternatives.Common.RenderTargets;
-using Microsoft.Xna.Framework;
-using Terraria;
 using Terraria.Audio;
 using Terraria.Graphics.Renderers;
-using Terraria.ModLoader;
 
 namespace GrapplingHookAlternatives.Content.Equipment.Teleporter;
 
