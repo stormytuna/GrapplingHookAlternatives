@@ -5,7 +5,7 @@ namespace GrapplingHookAlternatives.Common.Abstracts;
 
 public abstract class MovementEquipment : ModItem
 {
-    public abstract int CooldownTime { get; }
+	public abstract int CooldownTime { get; }
 
-    public virtual void OnGrapple(Player player) { }
+	public virtual void OnGrapple(Player player) { }
 }

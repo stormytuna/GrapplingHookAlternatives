@@ -2,8 +2,8 @@
   "profiles": {
     "Terraria": {
       "commandName": "Executable",
-      "executablePath": "$(DotNetName)",
-      "commandLineArgs": "$(tMLPath) -skipselect 'dev-gha:dev-classic'",
+      "executablePath": "/run/current-system/sw/bin/steam-run",
+      "commandLineArgs": "steam-run dotnet $(tMLPath) -skipselect 'dev-gha:dev-classic'",
       "workingDirectory": "$(tMLSteamPath)"
     },
     "TerrariaServer": {
