@@ -23,7 +23,6 @@ public class Teleporter : ModItem, IMovementEquipment
 	}
 
 	public void OnGrapple(Player player) {
-		// TODO: Visualise and finalise this!
 		int teleportBoxWidth = 16;
 		int teleportBoxHeight = 12;
 
@@ -47,7 +46,7 @@ public class Teleporter : ModItem, IMovementEquipment
 		Point teleportBoxTopLeft = player.Center.ToTileCoordinates() + teleportBoxOffset - new Point(TeleportBoxWidth / 2, TeleportBoxHeight / 2);
 		teleportBoxTopLeft = teleportBoxTopLeft.Clamp(0, Main.maxTilesX, 0, Main.maxTilesY);
 
-		// width -1 and height -1 so we don't query tiles outside of our box
+		// Width -1 and height -2 so we don't query tiles outside of our box
 		List<Point> validPositions = new();
 		List<Point> goodPositions = new();
 		for (int i = 0; i < teleportBoxWidth - 1; i++) {
@@ -65,11 +64,10 @@ public class Teleporter : ModItem, IMovementEquipment
 			}
 		}
 
-		// TODO: This glitches and places camera in hell for some reason, figure out why!
 		if (goodPositions.Count == 0 && validPositions.Count == 0) {
 			Point randomPoint = new(Main.rand.Next(teleportBoxTopLeft.X, teleportBoxTopLeft.X + teleportBoxWidth), Main.rand.Next(teleportBoxTopLeft.Y, teleportBoxTopLeft.X + teleportBoxHeight));
 			Vector2 randomPosition = randomPoint.ToVector2() * 16f;
-			player.Teleport(randomPosition);
+			player.Teleport(randomPosition, -1);
 			// One of rod of discord's death messages
 			player.KillMe(PlayerDeathReason.ByOther(Main.rand.Next(13, 15)), 1, 0);
 			return;
