@@ -1,5 +1,5 @@
 using System.IO;
-using GrapplingHookAlternatives.Content.Equipment.Teleporter;
+using GrapplingHookAlternatives.Content.Equipment;
 
 namespace GrapplingHookAlternatives;
 

@@ -1,17 +1,25 @@
 Items: {
-	CrystallisedCloud: {
-		DisplayName: Crystallised Cloud
-		Tooltip: ""
-	}
-
 	CrystallizedCloud: {
 		DisplayName: Crystallized Cloud
-		Tooltip: ""
+		Tooltip: Bounces you away from your cursor
 	}
 
 	Teleporter: {
 		DisplayName: Teleporter
-		Tooltip: ""
+		Tooltip:
+			'''
+			Teleports you in the direction you're holding
+			'A piece of futuristic technology! But it hasn't been perfected yet...'
+			'''
+	}
+
+	DeliciousStrawberry: {
+		DisplayName: Delicious Strawberry
+		Tooltip: 
+			'''
+			Dashes in the direction you're holding
+			'A symphony for the taste buds!'
+			'''
 	}
 }
 

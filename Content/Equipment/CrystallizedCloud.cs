@@ -1,12 +1,14 @@
 using GrapplingHookAlternatives.Interfaces;
 
-namespace GrapplingHookAlternatives.Content.Equipment.CrystallizedCloud;
+namespace GrapplingHookAlternatives.Content.Equipment;
 
 public class CrystallizedCloud : ModItem, IMovementEquipment
 {
 	public int CooldownTime => 3 * 60;
 
-	public override void SetDefaults() {
+    public bool RequiresOnGround => true;
+
+    public override void SetDefaults() {
 		Item.width = 22;
 		Item.height = 22;
 		Item.rare = ItemRarityID.Blue;
@@ -17,7 +19,7 @@ public class CrystallizedCloud : ModItem, IMovementEquipment
 
 	public void OnGrapple(Player player) {
 		Vector2 launchDirection = player.DirectionFrom(Main.MouseWorld);
-		float launchSpeed = 9f;
+		float launchSpeed = 12f;
 		player.velocity += launchDirection * launchSpeed;
 
 		// Visuals
