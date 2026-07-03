@@ -1,54 +1,50 @@
 sampler uImage0 : register(s0);
 sampler uImage1 : register(s1);
-sampler uImage2 : register(s2);
-sampler uImage3 : register(s3);
-float3 uColor;
-float3 uSecondaryColor;
-float uOpacity;
-float uSaturation;
-float uRotation;
-float uTime;
-float4 uSourceRect;
-float2 uWorldPosition;
-float uDirection;
-float3 uLightSource;
-float2 uImageSize0;
-float2 uImageSize1;
-float2 uImageSize2;
-float2 uImageSize3;
-float4 uShaderSpecificData;
 
-float4 TeleporterPlayer(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLOR0
+float intensity;
+float opacity;
+float brightness;
+float time;
+float2 textureSize;
+
+float2 snapToGrid(float2 coords) {
+    float2 pixelCoords = floor(coords * textureSize);
+    float2 snappedCoords = floor(pixelCoords / 2) * 2;
+    float2 snappedUV = (snappedCoords + float2(0.5, 0.5)) / textureSize;
+    return snappedUV;
+}
+
+float4 Glitch(float4 sampleColor : COLOR0, float2 coords : TEXCOORD0) : COLOR0
 {
-	// sample noise for vertical and horizontal offsets. we are using uOpacity as an intensity for now
-	float2 noiseCoords = coords + (uTime * 0.15, uTime * 0.15) * uOpacity;
-	float4 noise1 = tex2D(uImage1, noiseCoords);
-	float4 noise2 = tex2D(uImage2, noiseCoords);
-	float verticalOffset = lerp(-1, 1, noise1.x) * 0.001;
-	float horizontalOffset = lerp(-1, 1, noise2.x) * 0.001;
+    coords = snapToGrid(coords);
 
-	// sample player texture
-	float2 sampleCoords = coords + (horizontalOffset, verticalOffset);
-	float4 originalColor = tex2D(uImage0, sampleCoords);
-	float4 color = tex2D(uImage0, sampleCoords);
+    float2 noiseCoords = float2(0, coords.y * time * 0.15);
+    float4 noise = tex2D(uImage1, noiseCoords);
+    float horizontalOffset = lerp(-10, 10, noise.x) * 0.002 * intensity;
+    horizontalOffset *= step(2 / textureSize.x, abs(horizontalOffset));
 
-	// apply green tint and scanlines
-	float luminosity = (color.r + color.g + color.b) / 3;
-	color.rgb = luminosity * uColor * 15;
-	if ((coords.y + uTime * 0.01) % 0.002 < 0.001) 
-	{
-		color.rgb = luminosity * (uColor + (0.1, 0.1, 0.1)) * 15;
-	}
+    coords.x += horizontalOffset;
 
-	// allows us to fade the effect in and out during our teleport
-	color = lerp(originalColor, color, uOpacity);
-	return color * sampleColor;
+    float4 color = tex2D(uImage0, coords) * sampleColor;
+
+    float luminance = dot(color.rgb, float3(0.299, 0.587, 0.114));
+    float3 green = float3(0.1, 0.95, 0.05);
+    float3 greenImage = green * luminance * brightness;
+
+    float pixelY = floor(coords.y * textureSize.y);
+    float scanline = 1;
+    if (pixelY % 4 == 0) {
+      scanline = 0.7;
+    }
+
+    color.rgb = lerp(color.rgb, greenImage, opacity) * scanline;
+    return color;
 }
 
 technique Technique1
 {
-	pass Pass1
-	{
-		PixelShader = compile ps_2_0 TeleporterPlayer();
-	}
+    pass Pass1
+    {
+        PixelShader = compile ps_3_0 Glitch();
+    }
 }

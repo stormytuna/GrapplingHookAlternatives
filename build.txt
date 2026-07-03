@@ -1,3 +1,4 @@
 displayName = Grappling Hook Alternatives
 author = stormytuna
 version = 0.1
+modReferences = Daybreak

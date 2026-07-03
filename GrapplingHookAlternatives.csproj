@@ -9,6 +9,9 @@
         <DotNetName Condition="$(OS) == 'Unix'">/usr/bin/dotnet</DotNetName>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Daybreak">
+            <HintPath>Libraries/Daybreak.dll</HintPath>
+        </Reference>
         <Folder Include="Assets\Sounds\"/>
         <Folder Include="Content\Items\"/>
         <Folder Include="Helpers\"/>

@@ -4,7 +4,7 @@ namespace GrapplingHookAlternatives.Content.Equipment;
 
 public class CrystallizedCloud : ModItem, IMovementEquipment
 {
-	public int CooldownTime => 3 * 60;
+	public int CooldownTime => 0; //3 * 60;
 
     public bool RequiresOnGround => true;
 
@@ -16,6 +16,14 @@ public class CrystallizedCloud : ModItem, IMovementEquipment
 
 		Item.shoot = ModContent.ProjectileType<FakeHookProjectile>();
 	}
+
+    public override void AddRecipes() {
+		CreateRecipe()
+			.AddIngredient(ItemID.Sapphire, 8)
+			.AddIngredient(ItemID.Cloud, 25)
+			.AddTile(TileID.Anvils)
+			.Register();
+    }
 
 	public void OnGrapple(Player player) {
 		Vector2 launchDirection = player.DirectionFrom(Main.MouseWorld);

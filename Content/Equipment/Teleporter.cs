@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
+using Daybreak.Common.Features.Hooks;
+using Daybreak.Common.Rendering;
 using GrapplingHookAlternatives.Common.Loaders;
 using GrapplingHookAlternatives.Common.RenderTargets;
 using GrapplingHookAlternatives.Interfaces;
@@ -15,7 +17,7 @@ public class Teleporter : ModItem, IMovementEquipment
 	private const int TeleportBoxHorizontalOffset = 25;
 	private const int TeleportBoxVerticalOffset = 20;
 
-	public int CooldownTime => 5 * 60;
+	public int CooldownTime => 0; //5 * 60;
 
     public bool RequiresOnGround => true;
 
@@ -26,6 +28,13 @@ public class Teleporter : ModItem, IMovementEquipment
 		Item.value = Item.sellPrice(gold: 15);
 
 		Item.shoot = ModContent.ProjectileType<FakeHookProjectile>();
+	}
+
+	[GlobalNPCHooks.ModifyShop]
+	public void ModifyShop(NPCShop shop) {
+		if (shop.NpcType == NPCID.SkeletonMerchant) {
+			shop.Add(Type, Condition.Hardmode);
+		}
 	}
 
 	public void OnGrapple(Player player) {
@@ -119,13 +128,13 @@ public class TeleporterPlayer : ModPlayer
 
 	public bool KillMeOnTeleport = false;
 
-	private Vector2 teleportPosition;
-	private int timer;
+	private Vector2 _teleportPosition;
+	private int _teleportTimer;
 
 	public void BeginTeleporting(Vector2 teleportPosition) {
-		if (timer <= 0) {
-			timer = TeleportTimerMax;
-			this.teleportPosition = teleportPosition;
+		if (_teleportTimer <= 0) {
+			_teleportTimer = TeleportTimerMax;
+			_teleportPosition = teleportPosition;
 			SoundEngine.PlaySound(teleportSound, Player.Center);
 
 			if (Main.netMode == NetmodeID.MultiplayerClient && Player.whoAmI == Main.myPlayer) {
@@ -135,39 +144,39 @@ public class TeleporterPlayer : ModPlayer
 	}
 
 	public override void UpdateEquips() {
-		if (timer == TeleportTimerMax / 2) {
+		if (_teleportTimer == TeleportTimerMax / 2) {
 			if (KillMeOnTeleport) {
 				KillMeOnTeleport = false;
 
 				// One of rod of discord's death messages
 				Player.KillMe(PlayerDeathReason.ByOther(Main.rand.Next(13, 15)), 1, 0);
-				timer = 0;
+				_teleportTimer = 0;
 				return;
 			}
 
 			Vector2 oldPosition = Player.position;
-			Player.Teleport(teleportPosition, -1);
-			teleportPosition = oldPosition;
+			Player.Teleport(_teleportPosition, -1);
+			_teleportPosition = oldPosition;
 
 			for (int i = 0; i < 4; i++) {
 				Dust.NewDust(Player.position, Player.width, Player.height, ModContent.DustType<TeleporterDust>());
 			}
 		}
 
-		if (timer > 0) {
+		if (_teleportTimer > 0) {
 			Lighting.AddLight(Player.Center, Color.LimeGreen.ToVector3() * 0.5f);
-			Lighting.AddLight(teleportPosition, Color.LimeGreen.ToVector3() * 0.5f);
+			Lighting.AddLight(_teleportPosition, Color.LimeGreen.ToVector3() * 0.5f);
 
 			if (Main.rand.NextBool()) {
 				Dust.NewDust(Player.position, Player.width, Player.height, ModContent.DustType<TeleporterDust>());
 			}
 		}
 
-		timer--;
+		_teleportTimer--;
 	}
 
 	public override void HideDrawLayers(PlayerDrawSet drawInfo) {
-		if (!PlayerRenderTarget.canUseTarget || timer <= 0) {
+		if (!PlayerRenderTarget.canUseTarget || _teleportTimer <= 0) {
 			return;
 		}
 
@@ -177,29 +186,39 @@ public class TeleporterPlayer : ModPlayer
 	}
 
 	public override void DrawEffects(PlayerDrawSet drawInfo, ref float r, ref float g, ref float b, ref float a, ref bool fullBright) {
-		if (!PlayerRenderTarget.canUseTarget || timer <= 0) {
+		if (!PlayerRenderTarget.canUseTarget || _teleportTimer <= 0) {
 			return;
 		}
 
-
 		int fadeInOutFrames = 5;
-		float opacity = 1f;
-		if (timer >= TeleportTimerMax - fadeInOutFrames) {
-			opacity = MathHelper.Lerp(0, 1f, (TeleportTimerMax - timer) / (float)fadeInOutFrames);
+		float intensity = 1f;
+		if (_teleportTimer >= TeleportTimerMax - fadeInOutFrames) {
+			intensity = MathHelper.Lerp(0, 1f, (TeleportTimerMax - _teleportTimer) / (float)fadeInOutFrames);
 		}
-		else if (timer <= fadeInOutFrames) {
-			opacity = MathHelper.Lerp(0, 1f, timer / (float)fadeInOutFrames);
+		else if (_teleportTimer <= fadeInOutFrames) {
+			intensity = MathHelper.Lerp(0, 1f, _teleportTimer / (float)fadeInOutFrames);
 		}
+
+		Main.spriteBatch.End(out var snapshot);
+
+		var shader = Assets.TeleporterShader.Value;
+		shader.Parameters["intensity"].SetValue((intensity) / Main.CurrentFrameFlags.ActivePlayersCount);
+		shader.Parameters["opacity"].SetValue(intensity);
+		shader.Parameters["brightness"].SetValue(intensity * 1.8f);
+		shader.Parameters["textureSize"].SetValue(PlayerRenderTarget.Target.Size());
+		shader.Parameters["time"].SetValue(Main.GlobalTimeWrappedHourly);
+
+		Main.graphics.GraphicsDevice.Textures[1] = Assets.Noise01.Value;
+
+		Main.spriteBatch.Begin(snapshot with { CustomEffect = shader });
 
 		Vector2 position = PlayerRenderTarget.getPlayerTargetPosition(drawInfo.drawPlayer.whoAmI);
 		Rectangle sourceRect = PlayerRenderTarget.getPlayerTargetSourceRectangle(drawInfo.drawPlayer.whoAmI);
-		Vector2 teleportOffset = drawInfo.Position - teleportPosition;
-
-		ShaderLoader.TeleporterShader.UseOpacity(opacity);
-		ShaderLoader.TeleporterShader.Apply();
+		Vector2 teleportOffset = drawInfo.Position - _teleportPosition;
 		Main.spriteBatch.Draw(PlayerRenderTarget.Target, position, sourceRect, Color.White);
 		Main.spriteBatch.Draw(PlayerRenderTarget.Target, position - teleportOffset, sourceRect, Color.White);
-		Main.pixelShader.CurrentTechnique.Passes[0].Apply();
+
+		Main.spriteBatch.Restart(snapshot);
 	}
 
 	public static void HandleStartTeleportSync(BinaryReader reader, int whoAmI) {
@@ -224,14 +243,5 @@ public class TeleporterPlayer : ModPlayer
 		packet.Write7BitEncodedInt(player);
 		packet.WriteVector2(teleportPos);
 		packet.Send(ignoreClient: player);
-	}
-}
-
-public class TeleporterSkeletonMerchant : GlobalNPC
-{
-	public override bool AppliesToEntity(NPC entity, bool lateInstantiation) => entity.type == NPCID.SkeletonMerchant;
-
-	public override void ModifyShop(NPCShop shop) {
-		shop.Add<Teleporter>(Condition.MoonPhaseNew, Condition.Hardmode);
 	}
 }

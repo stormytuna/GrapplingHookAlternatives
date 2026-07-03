@@ -15,11 +15,16 @@ Items: {
 
 	DeliciousStrawberry: {
 		DisplayName: Delicious Strawberry
-		Tooltip: 
+		Tooltip:
 			'''
 			Dashes in the direction you're holding
 			'A symphony for the taste buds!'
 			'''
+	}
+
+	WhaleboneRune: {
+		DisplayName: Whalebone Rune
+		Tooltip: ""
 	}
 }
 

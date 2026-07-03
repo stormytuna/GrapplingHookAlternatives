@@ -1,15 +1,18 @@
 using System.Collections.Generic;
+using Daybreak.Common.Features.Hooks;
+using Daybreak.Common.Rendering;
 using GrapplingHookAlternatives.Common.Loaders;
 using GrapplingHookAlternatives.Common.RenderTargets;
 using GrapplingHookAlternatives.Interfaces;
 using Terraria.Audio;
 using Terraria.DataStructures;
+using Terraria.GameContent.ItemDropRules;
 
 namespace GrapplingHookAlternatives.Content.Equipment;
 
 public class DeliciousStrawberry : ModItem, IMovementEquipment
 {
-	public int CooldownTime => 1 * 60;
+	public int CooldownTime => 0; //1 * 60;
 
     public bool RequiresOnGround => true;
 
@@ -42,6 +45,39 @@ public class DeliciousStrawberry : ModItem, IMovementEquipment
 		}
 
 		player.GetModPlayer<DeliciousStrawberryPlayer>().BeginDash(dashDirection);
+	}
+
+	[ModSystemHooks.PostWorldGen]
+	public void PostWorldGen() {
+		for (int i = 0; i < Main.maxChests; i++) {
+			Chest chest = Main.chest[i];
+			if (chest is null) {
+				continue;
+			}
+
+			Tile chestTile = Main.tile[chest.x, chest.y];
+
+			// 12th chest is Frozen Chest
+			if (chestTile.TileType == TileID.Containers && chestTile.TileFrameX == 11 * 36) {
+				if (WorldGen.genRand.NextBool(3, 4)) {
+					continue;
+				}
+
+				for (int inventoryIndex = 0; inventoryIndex < Chest.maxItems; inventoryIndex++) {
+					if (chest.item[inventoryIndex].IsAir) {
+						chest.item[inventoryIndex].SetDefaults(Type);
+						continue;
+					}
+				}
+			}
+		}
+	}
+
+	[GlobalItemHooks.ModifyItemLoot]
+	public void ModifyItemLoot(Item item, ItemLoot itemLoot) {
+		if (item.type is ItemID.FrozenCrate or ItemID.FrozenCrateHard) {
+			itemLoot.Add(ItemDropRule.Common(Type, 4));
+		}
 	}
 }
 
@@ -119,18 +155,22 @@ public class DeliciousStrawberryPlayer : ModPlayer
 			return;
 		}
 
-		ShaderLoader.DeliciousStrawberryShader.Apply();
+		Main.spriteBatch.End(out var snapshot);
+
+		Assets.DeliciousStrawberryShader.Value.Parameters["color"].SetValue(new Color(119, 252, 250).ToVector3());
+
+		Main.spriteBatch.Begin(snapshot with { CustomEffect = Assets.DeliciousStrawberryShader.Value });
 
 		Vector2 position = PlayerRenderTarget.getPlayerTargetPosition(drawInfo.drawPlayer.whoAmI);
 		Rectangle sourceRect = PlayerRenderTarget.getPlayerTargetSourceRectangle(drawInfo.drawPlayer.whoAmI);
 		foreach (var afterimage in _afterimages) {
 			Vector2 drawOffset = drawInfo.Position - afterimage.position;
 			float opacity = Utils.Remap(afterimage.timeActive, AfterimageLifetime, 0, 0f, 0.8f, true);
-			ShaderLoader.DeliciousStrawberryShader.UseOpacity(opacity);
+			Assets.DeliciousStrawberryShader.Value.Parameters["opacity"].SetValue(opacity);
 			Main.spriteBatch.Draw(PlayerRenderTarget.Target, position - drawOffset, sourceRect, Color.White);
 		}
 
-		Main.pixelShader.CurrentTechnique.Passes[0].Apply();
+		Main.spriteBatch.Restart(snapshot);
 
 		Main.spriteBatch.Draw(PlayerRenderTarget.Target, position, sourceRect, Color.White);
     }
